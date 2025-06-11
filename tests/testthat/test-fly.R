@@ -113,7 +113,7 @@ test_that("simplify works with different return types", {
 	# Returns consistent single values -> vector
 	data <- list(a = 1:3, b = 4:6)
 	result <- fly(data, length, simplify = TRUE)
-	expect_vector(result)
+	expect_type(result, "integer")
 	
 	# Returns different types -> list
 	mixed_data <- list(a = 1:3, b = "hello")
