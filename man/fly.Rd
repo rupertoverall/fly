@@ -61,13 +61,15 @@ simplicity of a \code{for} loop while retaining the flexibilty and power of
 than \code{lapply}---especially for typical use cases.
 
 Some handy features are included:
-- Custom functions do not need the \code{function} keyword, just insert the body of the function as a code block.
-- The variable holding the data for each iteration does not need to be declared. By default it is ".x".
-- The index of the iteration is automatically made available as a variable. By default called ".i".
-- Element names (from the input list or matrix) are used to name the output list.
-- Output is always a list (including empty elements) so it will always align with the input.
-- Parallelisation is built-in. No need to interface with the \code{parLapply} syntax directly. The same code will work sequentially or in parallel by just changing one parameter.
-- Lists and matrices use the same function.
+\itemize{
+ \item Custom functions do not need the \code{function} keyword, just insert the body of the function as a code block.
+ \item The variable holding the data for each iteration does not need to be declared. By default it is ".x".
+ \item The index of the iteration is automatically made available as a variable. By default called ".i".
+ \item Element names (from the input list or matrix) are used to name the output list.
+ \item Output is always a list (including empty elements) so it will always align with the input.
+ \item Parallelisation is built-in. No need to interface with the \code{parLapply} syntax directly. The same code will work sequentially or in parallel by just changing one parameter.
+ \item Lists and matrices use the same function.
+ }
 
 The \code{fly} function supports several input types:
 \itemize{
