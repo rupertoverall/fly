@@ -212,6 +212,9 @@ fly <- function(X, expr, ..., .var = ".x", .margin = 1, .parallel = NULL,
 	
 	#-----------------------------------
 	if (!is.null(.parallel)) {
+		if(.parallel == TRUE | .parallel == -1){ # Alternative codes for 'all cores'
+			.parallel = parallel::detectCores()
+		}
 		# Parallel execution.
 		if (!requireNamespace("parallel", quietly = TRUE)) {
 			stop("The `parallel` package is required for parallel execution.")
