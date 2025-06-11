@@ -46,10 +46,10 @@ fly(mat, { # No 'function' keyword required.
 
 fly(letters[1:6], {which(.x != "d")}) # Empty value retained.
 
-input = list(a = 1:4, b = 5:8, c = 9:11)
-fly(input, max) # Names are retained.
+vec = list(a = 1:4, b = 5:8, c = 9:11)
+fly(vec, max) # Names are retained.
 
-fly(input, {
+fly(vec, {
 	c(paste0("Value_", .i), max(.x)) # Internal index included.
 })
 
