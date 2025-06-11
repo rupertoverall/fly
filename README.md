@@ -32,24 +32,28 @@ devtools::install_github("rupertoverall/fly")
 library(fly)
 
 mat = matrix(c(1:11, NA), nrow = 3)
-fly(mat, median) # By rows
+fly(mat, median) # By rows.
 
-fly(mat, median, na.rm = TRUE) # Pass additional arguments
+fly(mat, median, na.rm = TRUE) # Pass additional arguments.
 
-fly(mat, median, na.rm = TRUE, .margin = 2) # By columns
+fly(mat, median, na.rm = TRUE, .margin = 2) # By columns.
 
-fly(mat, { # No 'function' keyword required
+fly(mat, { # No 'function' keyword required.
 	is.even = .x %% 2 == 0 # '.x' is the in-built variable from the input (in this example, a row of the matrix)
 	sum.evens = sum(.x[is.even], na.rm = TRUE)
 	return(sum.evens)
 })
 
-fly(letters[1:6], {which(.x != "d")}) # Empty value retained
+fly(letters[1:6], {which(.x != "d")}) # Empty value retained.
 
 input = list(a = 1:4, b = 5:8, c = 9:11)
-fly(input, max) # Names are retained
+fly(input, max) # Names are retained.
 
 fly(input, {
-	c(paste0("Value_", .i), max(.x)) # Internal index included
+	c(paste0("Value_", .i), max(.x)) # Internal index included.
 })
+fly(mat, median, .parallel = 4) # Runs on 4 cores. 
+# Be aware that the memory and object handling overhead 
+# makes this only worthwhile for very compute-intensive functions.
+
 ```
