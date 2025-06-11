@@ -1,7 +1,7 @@
 # fly
 
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/yourusername/fly/workflows/R-CMD-check/badge.svg)](https://github.com/rupertoverall/fly/actions)
+[![R-CMD-check](https://github.com/rupertoverall/fly/workflows/R-CMD-check/badge.svg)](https://github.com/rupertoverall/fly/actions)
 [![CRAN status](https://www.r-pkg.org/badges/version/fly)](https://CRAN.R-project.org/package=fly)
 <!-- badges: end -->
 
