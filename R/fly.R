@@ -152,15 +152,15 @@ fly <- function(X, expr, ..., .var = ".x", .margin = 1, .parallel = NULL,
 	}
 	
 	# Clean up potentially massive raw data ghosts.
-	gc(verbose = FALSE)
+	if(object.size(X) > 1e6) gc(verbose = FALSE)
 	
 	#-----------------------------------
 	# Classify the expression and capture it.
-	is.fn = tryCatch(is.function(expr), error = function(e) FALSE, warning = function(e) FALSE)
-	is.name = tryCatch(exists(expr), error = function(e) FALSE, warning = function(e) FALSE)
-	if(!is.name) expr <- deparse(substitute(expr))
+	expr = substitute(expr)
+	is.fn = tryCatch(exists(as.character(expr), mode = "function"), error = function(e) FALSE, warning = function(e) FALSE)
+	if(!is.fn) expr <- deparse(substitute(expr))
 	is.code = tryCatch(grepl("\\{", expr[1]), error = function(e) FALSE, warning = function(e) FALSE)
-	
+
 	# Capture additional arguments.
 	arguments <- list(...)
 	if(length(arguments) > 0){
@@ -175,7 +175,7 @@ fly <- function(X, expr, ..., .var = ".x", .margin = 1, .parallel = NULL,
 	}
 
 	# Prepare the function.
-	if(is.fn | is.name){
+	if(is.fn){
 		func_string = paste0(
 			"function(",
 			.var,
@@ -238,15 +238,17 @@ fly <- function(X, expr, ..., .var = ".x", .margin = 1, .parallel = NULL,
 		}
 	} else {
 		# Sequential execution
-		result <- mapply(worker_func, worker_data, SIMPLIFY = FALSE, USE.NAMES = FALSE)
+		result <- lapply(worker_data, worker_func)
 	}
 	
 	# Always ensure result is a proper list (even if elements are NULL).
 	if (!is.list(result)) {
 		result <- as.list(result)
 	}
-	rm(X)
-	gc(verbose = FALSE)
+	if(object.size(X) > 1e6){
+		rm(X)
+		gc(verbose = FALSE)
+	}
 	
 	# Preserve names from original data object.
 	names(result) <- X_names
