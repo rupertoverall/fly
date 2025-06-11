@@ -5,7 +5,7 @@
 [![CRAN status](https://www.r-pkg.org/badges/version/fly)](https://CRAN.R-project.org/package=fly)
 <!-- badges: end -->
 
-The `fly` package provides an intuitive way to iterate over data objects using an uncluttered syntax while retaining the flexibility and power of `lapply()`. 
+The `fly` package for R provides an intuitive way to iterate over data objects using an uncluttered syntax while retaining the flexibility and power of `lapply()`. 
 
 ## Motivation
 
