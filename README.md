@@ -10,12 +10,12 @@ The `fly` package provides an intuitive way to iterate over data objects using a
 ## Motivation
 
 When writing a lot of *apply loops, some of the syntax becomes rather tedious. This package aims to strip away redundant code and make the most-used features a bit more accessible.
- -  Custom functions do not need the \code{function} keyword, just insert the body of the function as a code block.
+ -  Custom functions do not need the `function` keyword, just insert the body of the function as a code block.
  -  The variable holding the data for each iteration does not need to be declared. By default it is ".x".
  -  The index of the iteration is automatically made available as a variable. By default called ".i".
  -  Element names (from the input list or matrix) are used to name the output list.
  -  Output is always a list (including empty elements) so it will always align with the input.
- -  Parallelisation is built-in. No need to interface with the \code{parLapply} syntax directly. The same code will work sequentially or in parallel by just changing one parameter.
+ -  Parallelisation is built-in. No need to interface with the `parLapply` syntax directly. The same code will work sequentially or in parallel by just changing one parameter.
  - Lists and matrices use the same function.
 
 ## Installation
