@@ -1,15 +1,15 @@
 # fly
 
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/yourusername/fly/workflows/R-CMD-check/badge.svg)](https://github.com/yourusername/fly/actions)
+[![R-CMD-check](https://github.com/yourusername/fly/workflows/R-CMD-check/badge.svg)](https://github.com/rupertoverall/fly/actions)
 [![CRAN status](https://www.r-pkg.org/badges/version/fly)](https://CRAN.R-project.org/package=fly)
 <!-- badges: end -->
 
-The `fly` package provides an intuitive way to iterate over collections using for-loop syntax while maintaining the functional programming benefits of `lapply()`. 
+The `fly` package provides an intuitive way to iterate over data objects using an uncluttered syntax while retaining the flexibility and power of `lapply()`. 
 
 ## Installation
 
-You can install the released version of fly from [CRAN](https://CRAN.R-project.org) with:
+You can install this version of fly with:
 
 ```r
-install.packages("fly")
+devtools::install_github("rupertoverall/fly")
