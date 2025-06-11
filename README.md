@@ -52,8 +52,8 @@ fly(input, max) # Names are retained.
 fly(input, {
 	c(paste0("Value_", .i), max(.x)) # Internal index included.
 })
+
 fly(mat, median, .parallel = 4) # Runs on 4 cores. 
-# Be aware that the memory and object handling overhead 
-# makes this only worthwhile for very compute-intensive functions.
+# Be aware that the memory and object handling overhead makes parallelisation only worthwhile for very compute-intensive functions.
 
 ```
