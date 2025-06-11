@@ -1,0 +1,21 @@
+Package: fly
+Type: Package
+Title: Intuitive Iteration with For-Loop Syntax
+Version: 0.1.0
+Authors@R: person("Rupert", "Overall", email = "rtrack@rupertoverall.net", role = c("aut", "cre"))
+Description: Provides the fly() function that combines the power of lapply() with 
+    the intuitive syntax of for-loops. Supports iteration over lists, vectors, 
+    matrices, and data frames with optional parallel processing. Always returns 
+    consistent list output while preserving names from the original collection.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.3.2
+Suggests: 
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown,
+    parallel
+VignetteBuilder: knitr
+URL: https://github.com/rupertoverall/fly
+BugReports: https://github.com/rupertoverall/fly/issues
