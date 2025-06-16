@@ -53,7 +53,12 @@ fly <- function(X, expr, ..., .var = ".x", .margin = 1, .parallel = NULL,
 		X <- as.list(X)
 	} else if (is.vector(X) && !is.list(X)) {
 		# Handle atomic vectors - convert to list.
-		X_names <- names(X)
+		if(!is.null(names(X))){
+			X_names <- names(X)
+		}else{
+			# Try to use the input vector itself as names.
+			X_names <- tryCatch(as.character(X), error = function(e) NULL)
+		}
 		X <- as.list(X)
 	} else if (is.list(X)) {
 		# Already a list - use as is.
