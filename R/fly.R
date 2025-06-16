@@ -5,22 +5,6 @@
 #' including lists, vectors, matrices, and data frames, with optional parallel
 #' processing and result simplification.
 #'
-#' \code{fly} is essentially a wrapper for \code{lapply} but which conbines the
-#' simplicity of a \code{for} loop while retaining the flexibilty and power of
-#' \code{lapply}. The basic syntax is intuitive and requires much less typing
-#' than \code{lapply}---especially for typical use cases.
-#' 
-#' Some handy features are included:
-#' \itemize{
-#'  \item Custom functions do not need the \code{function} keyword, just insert the body of the function as a code block.
-#'  \item The variable holding the data for each iteration does not need to be declared. By default it is ".x".
-#'  \item The index of the iteration is automatically made available as a variable. By default called ".i".
-#'  \item Element names (from the input list or matrix) are used to name the output list.
-#'  \item Output is always a list (including empty elements) so it will always align with the input.
-#'  \item Parallelisation is built-in. No need to interface with the \code{parLapply} syntax directly. The same code will work sequentially or in parallel by just changing one parameter.
-#'  \item Lists and matrices use the same function.
-#'  }
-#'	
 #' @param X The data object to iterate over. Can be a list, vector, matrix,
 #'   array, or data frame.
 #' @param expr An expression or function to execute for each element. Can be a
@@ -45,77 +29,6 @@
 #'   simplify to a vector or array like \code{sapply}. Names from the original
 #'   data object are preserved when present.
 #'
-#' @details The \code{fly} function supports several input types:
-#' \itemize{
-#'   \item \strong{Lists}: Iterates over list elements
-#'   \item \strong{Vectors}: Converts to list and iterates over elements
-#'   \item \strong{Matrices/Arrays}: Iterates over rows or columns based on \code{.margin}
-#'   \item \strong{Data frames}: Iterates over columns (like \code{lapply})
-#' }
-#'
-#' The function can execute either expressions (code blocks) or functions:
-#' \itemize{
-#'   \item \strong{Expressions}: Use braces \code{\{...\}} to write code that has
-#'     access to the iteration variable (default \code{.x}) and any additional arguments
-#'   \item \strong{Functions}: Pass function names or objects that will be called
-#'     with each element plus any additional arguments
-#' }
-#'
-#' The \code{simplify} parameter works exactly like in \code{sapply}:
-#' \itemize{
-#'   \item \code{FALSE}: Always return a list (default)
-#'   \item \code{TRUE}: Simplify to vector/matrix when possible
-#'   \item \code{"array"}: Simplify to array when possible
-#' }
-#'
-#' @examples
-#' # Basic list iteration
-#' data <- list(a = 1:4, b = 5:8)
-#' result <- fly(data, sum)
-#' print(result)
-#'
-#' # Using expressions with default .x variable
-#' result <- fly(data, { length(.x) })
-#' print(result)
-#'
-#' # With additional arguments
-#' text_data <- list(a = c("hello", "world"), b = c("foo", "bar"))
-#' result <- fly(text_data, { paste(.x, collapse = sep) }, sep = "-")
-#' print(result)
-#'
-#' # Matrix iteration by rows (default)
-#' mat <- matrix(1:12, nrow = 3)
-#' rownames(mat) <- paste0("row", 1:3)
-#' result <- fly(mat, sum)
-#' print(result)
-#'
-#' # Matrix iteration by columns
-#' result <- fly(mat, mean, .margin = 2)
-#' print(result)
-#'
-#' # Custom variable name
-#' result <- fly(data, { row_sum <- sum(row_data); row_sum^2 }, .var = "row_data")
-#' print(result)
-#'
-#' # Accessing iteration index
-#' result <- fly(data, { paste("Item", .i, "sum:", sum(.x)) })
-#' print(result)
-#'
-#' # Simplify results
-#' numbers <- list(a = 1:3, b = 4:6, c = 7:9)
-#' result_list <- fly(numbers, sum)                    # Returns list
-#' result_vector <- fly(numbers, sum, simplify = TRUE) # Returns named vector
-#' print(result_list)
-#' print(result_vector)
-#'
-#' # Parallel processing
-#' \dontrun{
-#' large_list <- as.list(1:100)
-#' result <- fly(large_list, { Sys.sleep(0.01); .x^2 }, .parallel = 4)
-#' }
-#'
-#' @seealso \code{\link{lapply}}, \code{\link{sapply}}, \code{\link{apply}}
-#'
 #' @export
 fly <- function(X, expr, ..., .var = ".x", .margin = 1, .parallel = NULL, 
 								.index_var = ".i", simplify = FALSE) {
@@ -132,7 +45,7 @@ fly <- function(X, expr, ..., .var = ".x", .margin = 1, .parallel = NULL,
 			X_names <- colnames(X)
 			X <- as.list(as.data.frame(X))
 		} else {
-			stop(".margin must be 1 (rows) or 2 (columns) for matrices")
+			stop(".margin must be 1 (rows) or 2 (columns) for matrices.")
 		}
 	} else if (is.data.frame(X)) {
 		# Handle data.frame - convert to list of columns (like lapply default).
@@ -155,54 +68,82 @@ fly <- function(X, expr, ..., .var = ".x", .margin = 1, .parallel = NULL,
 	if(object.size(X) > 1e6) gc(verbose = FALSE)
 	
 	#-----------------------------------
+	# Capture the calling environment for proper scoping
+	calling_env <- parent.frame()
+	
 	# Classify the expression and capture it.
-	expr = substitute(expr)
-	is.fn = tryCatch(exists(as.character(expr), mode = "function"), error = function(e) FALSE, warning = function(e) FALSE)
-	if(!is.fn) expr <- deparse(substitute(expr))
-	is.code = tryCatch(grepl("\\{", expr[1]), error = function(e) FALSE, warning = function(e) FALSE)
-
-	# Capture additional arguments.
-	arguments <- list(...)
-	if(length(arguments) > 0){
-		for(i in seq_along(arguments)){
-			if(is.character(arguments[[i]])) arguments[[i]] = paste0('\"', arguments[[i]], '\"')
-		}
-		arguments = paste(names(arguments), arguments, sep = " = ")
-		arguments = paste(arguments, collapse = ", ")
-		arguments = paste(",", arguments)
-	}else{
-		arguments = ""
-	}
-
-	# Prepare the function.
-	if(is.fn){
-		func_string = paste0(
-			"function(",
-			.var,
-			"){",
-			expr,
-			"(",
-			paste0(.var, "[[1]]"),
-			arguments,
-			")}",
-			collapse = ""
-		)
-	}else if(is.code){
-		func_string = paste0(
-			"function(",
-			.var,
-			arguments,
-			"){\n",
-			paste0(.index_var, " = ", .var, "[[2]]\n"),
-			paste0(.var, " = ", .var, "[[1]]\n"),
-			paste(expr[-1], collapse = "\n"),
-			collapse = ""
-		)
-	}else{
-		stop("The expression is not a valid function.")
+	expr_sub <- substitute(expr)
+	is_fn <- tryCatch(exists(as.character(expr_sub), mode = "function"), 
+										error = function(e) FALSE, warning = function(e) FALSE)
+	
+	if (!is_fn) {
+		expr_deparsed <- deparse(substitute(expr))
+		is_code <- tryCatch(grepl("\\{", expr_deparsed[1]), 
+												error = function(e) FALSE, warning = function(e) FALSE)
 	}
 	
-	worker_func <- eval(parse(text = func_string))
+	# Capture additional arguments.
+	arguments <- list(...)
+	
+	# Create the worker function with proper environment handling.
+	if (is_fn) {
+		# For function calls, create a wrapper that preserves the calling environment.
+		worker_func <- function(worker_item) {
+			item_data <- worker_item[[1]]
+			item_index <- worker_item[[2]]
+			
+			# Get the function from the calling environment.
+			fn <- get(as.character(expr_sub), envir = calling_env, mode = "function")
+			
+			# Call with additional arguments.
+			do.call(fn, c(list(item_data), arguments))
+		}
+		# Set the environment of worker_func to include the calling environment.
+		environment(worker_func) <- list2env(list(
+			expr_sub = expr_sub,
+			calling_env = calling_env,
+			arguments = arguments
+		), parent = calling_env)
+		
+	} else if (is_code) {
+		# For code blocks, create a function that evaluates in the calling environment.
+		worker_func <- function(worker_item) {
+			item_data <- worker_item[[1]]
+			item_index <- worker_item[[2]]
+			
+			# Create a new environment that inherits from the calling environment.
+			eval_env <- new.env(parent = calling_env)
+			
+			# Set up the iteration variables.
+			assign(.var, item_data, envir = eval_env)
+			if (!is.null(.index_var) && .index_var != "") {
+				assign(.index_var, item_index, envir = eval_env)
+			}
+			
+			# Add any additional arguments to the environment.
+			if (length(arguments) > 0) {
+				for (name in names(arguments)) {
+					assign(name, arguments[[name]], envir = eval_env)
+				}
+			}
+			
+			# Evaluate the expression in this environment.
+			eval(expr_sub, envir = eval_env)
+		}
+		# Set the environment to preserve access to calling environment.
+		environment(worker_func) <- list2env(list(
+			expr_sub = expr_sub,
+			calling_env = calling_env,
+			arguments = arguments,
+			.var = .var,
+			.index_var = .index_var
+		), parent = calling_env)
+		
+	} else {
+		stop("The expression is not a valid function or code block.")
+	}
+	
+	# Prepare worker data
 	worker_data <- mapply(
 		function(x, i) list(data = x, index = i), 
 		X, 
@@ -212,8 +153,8 @@ fly <- function(X, expr, ..., .var = ".x", .margin = 1, .parallel = NULL,
 	
 	#-----------------------------------
 	if (!is.null(.parallel)) {
-		if(.parallel == TRUE | .parallel == -1){ # Alternative codes for 'all cores'
-			.parallel = parallel::detectCores()
+		if(.parallel == TRUE || .parallel == -1) { # Alternative codes for 'all cores'.
+			.parallel <- parallel::detectCores()
 		}
 		# Parallel execution.
 		if (!requireNamespace("parallel", quietly = TRUE)) {
@@ -221,8 +162,48 @@ fly <- function(X, expr, ..., .var = ".x", .margin = 1, .parallel = NULL,
 		}
 		
 		if (is.numeric(.parallel)) {
-			# Create cluster with specified number of cores.
-			cl <- parallel::makeCluster(.parallel)
+			# For parallel execution, we need to export the calling environment.
+			# Use FORK cluster on Unix-like systems for better environment sharing.
+			if (.Platform$OS.type == "unix") {
+				cl <- parallel::makeForkCluster(.parallel)
+			} else {
+				# On Windows, create PSOCK cluster and export necessary objects.
+				cl <- parallel::makeCluster(.parallel)
+				
+				# Export all objects from the calling environment.
+				if (is_code) {
+					# Extract variables used in the expression, excluding iteration variables
+					exclude <- c(.var, .index_var, .margin, .parallel, names(arguments))
+					used_vars <- extract_variables(expr_sub, exclude_vars = exclude)
+					
+					# Filter to only variables that actually exist in the calling environment
+					existing_vars <- used_vars[sapply(used_vars, function(v) exists(v, envir = calling_env))]
+					
+					# Export only the variables that are actually used and exist
+					if (length(existing_vars) > 0) {
+						parallel::clusterExport(cl, existing_vars, envir = calling_env)
+					}
+				} else if (is_fn) {
+					# For function calls, just export the function itself
+					func_name <- as.character(expr_sub)
+					if (exists(func_name, envir = calling_env)) {
+						parallel::clusterExport(cl, func_name, envir = calling_env)
+					}
+				}
+				
+				# Also export any packages loaded in the calling environment
+				search_paths <- search()
+				pkg_paths <- search_paths[grepl("^package:", search_paths)]
+				if (length(pkg_paths) > 0) {
+					pkg_names <- sub("^package:", "", pkg_paths)
+					for (pkg in pkg_names) {
+						if (pkg != "base") {
+							try(parallel::clusterEvalQ(cl, library(pkg, character.only = TRUE)), 
+									silent = TRUE)
+						}
+					}
+				}
+			}
 		} else if (inherits(.parallel, "cluster")) {
 			# Use provided cluster.
 			cl <- .parallel
@@ -230,9 +211,9 @@ fly <- function(X, expr, ..., .var = ".x", .margin = 1, .parallel = NULL,
 			stop(".parallel must be a number of cores or a cluster object.")
 		}
 		
-		# Run in parallel - each worker gets only its specific item + index.
+		# Run in parallel
 		result <- parallel::parLapply(cl, worker_data, worker_func)
-
+		
 		if (is.numeric(.parallel)) {
 			parallel::stopCluster(cl)
 		}
@@ -245,14 +226,14 @@ fly <- function(X, expr, ..., .var = ".x", .margin = 1, .parallel = NULL,
 	if (!is.list(result)) {
 		result <- as.list(result)
 	}
-	if(object.size(X) > 1e6){
+	if(object.size(X) > 1e6) {
 		rm(X)
 		gc(verbose = FALSE)
 	}
 	
 	# Preserve names from original data object.
 	names(result) <- X_names
-
+	
 	# Apply simplification if requested (using sapply logic).
 	if (simplify != FALSE) {
 		result <- simplify2array(result, higher = (simplify == "array"))

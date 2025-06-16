@@ -161,3 +161,24 @@ test_that("fly preserves names from various input types", {
 	expect_equal(names(result3), c("col1", "col2"))
 })
 
+test_that("fly can pass through variables from the parent environment", {
+	# Named vector
+	vec <- c(x = 1, y = 2, z = 3)
+	
+	# Secondary vector
+	sec <- 4
+	
+	# Sequential execution
+	result <- fly(vec, {
+		.x + sec
+	})
+	expect_equal(result, list(x = 5, y = 6, z = 7))
+	
+	# Parallel execution
+	result <- fly(vec, {
+		.x + sec
+	}, .parallel = 2)
+	expect_equal(result, list(x = 5, y = 6, z = 7))
+	
+})
+
