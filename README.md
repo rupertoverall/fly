@@ -53,6 +53,9 @@ fly(vec, {
 	c(paste0("Value_", .i), max(.x)) # Internal index included.
 })
 
+vect = setNames(1:10, LETTERS[1:10])
+fly(vect, {print(names(.x))} ) # '.x' retains the name from the input vector so this can be used internally.
+
 fly(mat, median, .parallel = 4) # Runs on 4 cores. 
 # Be aware that the memory and object handling overhead makes parallelisation only worthwhile for very compute-intensive functions.
 
