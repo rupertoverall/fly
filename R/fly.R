@@ -102,7 +102,7 @@ fly <- function(X, expr, ..., .var = ".x", .margin = 1, .parallel = NULL,
 			fn <- get(as.character(expr_sub), envir = calling_env, mode = "function")
 			
 			# Call with additional arguments.
-			do.call(fn, c(list(item_data), arguments))
+			unname(do.call(fn, c(list(item_data), arguments)))
 		}
 		# Set the environment of worker_func to include the calling environment.
 		environment(worker_func) <- list2env(list(
@@ -135,7 +135,7 @@ fly <- function(X, expr, ..., .var = ".x", .margin = 1, .parallel = NULL,
 			}
 			
 			# Evaluate the expression in this environment.
-			eval(expr_sub, envir = eval_env)
+			unname(eval(expr_sub, envir = eval_env))
 		}
 		# Set the environment to preserve access to calling environment.
 		environment(worker_func) <- list2env(list(
