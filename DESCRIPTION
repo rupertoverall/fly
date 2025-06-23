@@ -1,7 +1,7 @@
 Package: fly
 Type: Package
 Title: Intuitive Iteration with For-Loop Syntax
-Version: 0.1.2
+Version: 0.1.3
 Authors@R: person("Rupert", "Overall", email = "rtrack@rupertoverall.net", role = c("aut", "cre"))
 Description: Provides the fly() function that combines the power of lapply() with 
     the intuitive syntax of for-loops. Supports iteration over lists, vectors, 

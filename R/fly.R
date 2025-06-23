@@ -73,7 +73,7 @@ fly <- function(X, expr, ..., .var = ".x", .margin = 1, .parallel = NULL,
 	if(object.size(X) > 1e6) gc(verbose = FALSE)
 	
 	#-----------------------------------
-	# Capture the calling environment for proper scoping
+	# Capture the calling environment for proper scoping.
 	calling_env <- parent.frame()
 	
 	# Classify the expression and capture it.
@@ -96,6 +96,7 @@ fly <- function(X, expr, ..., .var = ".x", .margin = 1, .parallel = NULL,
 		worker_func <- function(worker_item) {
 			item_data <- worker_item[[1]]
 			item_index <- worker_item[[2]]
+			names(item_data) <- worker_item[[3]]
 			
 			# Get the function from the calling environment.
 			fn <- get(as.character(expr_sub), envir = calling_env, mode = "function")
@@ -115,6 +116,7 @@ fly <- function(X, expr, ..., .var = ".x", .margin = 1, .parallel = NULL,
 		worker_func <- function(worker_item) {
 			item_data <- worker_item[[1]]
 			item_index <- worker_item[[2]]
+			names(item_data) <- worker_item[[3]]
 			
 			# Create a new environment that inherits from the calling environment.
 			eval_env <- new.env(parent = calling_env)
@@ -150,9 +152,10 @@ fly <- function(X, expr, ..., .var = ".x", .margin = 1, .parallel = NULL,
 	
 	# Prepare worker data
 	worker_data <- mapply(
-		function(x, i) list(data = x, index = i), 
+		function(x, i, n) list(data = x, index = i, name = n), 
 		X, 
 		seq_along(X), 
+		X_names, 
 		SIMPLIFY = FALSE
 	)
 	
