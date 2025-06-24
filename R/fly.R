@@ -35,14 +35,17 @@ fly <- function(X, expr, ..., .var = ".x", .margin = 1, .parallel = NULL,
 	
 	# Handle different input types and convert to list format.
 	X_names = NULL
+	vector_names = NULL
 	if (is.matrix(X) || is.array(X)) {
 		if (.margin == 1) {
 			# Iterate over rows.
 			X_names <- rownames(X)
+			vector_names <- colnames(X)
 			X <- as.list(as.data.frame(t(X)))
 		} else if (.margin == 2) {
 			# Iterate over columns.
 			X_names <- colnames(X)
+			vector_names <- rownames(X)
 			X <- as.list(as.data.frame(X))
 		} else {
 			stop(".margin must be 1 (rows) or 2 (columns) for matrices.")
@@ -50,6 +53,7 @@ fly <- function(X, expr, ..., .var = ".x", .margin = 1, .parallel = NULL,
 	} else if (is.data.frame(X)) {
 		# Handle data.frame - convert to list of columns (like lapply default).
 		X_names <- names(X)
+		vector_names <- rownames(X)
 		X <- as.list(X)
 	} else if (is.vector(X) && !is.list(X)) {
 		# Handle atomic vectors - convert to list.
@@ -96,7 +100,11 @@ fly <- function(X, expr, ..., .var = ".x", .margin = 1, .parallel = NULL,
 		worker_func <- function(worker_item) {
 			item_data <- worker_item[[1]]
 			item_index <- worker_item[[2]]
-			names(item_data) <- worker_item[[3]]
+			if(!is.null(vector_names) && is.null(names(item_data))) {
+				names(item_data) <- vector_names
+			}else{
+				names(item_data) <- worker_item[[3]]
+			}
 			
 			# Get the function from the calling environment.
 			fn <- get(as.character(expr_sub), envir = calling_env, mode = "function")
@@ -108,7 +116,8 @@ fly <- function(X, expr, ..., .var = ".x", .margin = 1, .parallel = NULL,
 		environment(worker_func) <- list2env(list(
 			expr_sub = expr_sub,
 			calling_env = calling_env,
-			arguments = arguments
+			arguments = arguments,
+			vector_names = vector_names
 		), parent = calling_env)
 		
 	} else if (is_code) {
@@ -116,7 +125,11 @@ fly <- function(X, expr, ..., .var = ".x", .margin = 1, .parallel = NULL,
 		worker_func <- function(worker_item) {
 			item_data <- worker_item[[1]]
 			item_index <- worker_item[[2]]
-			names(item_data) <- worker_item[[3]]
+			if(!is.null(vector_names) && is.null(names(item_data))) {
+				names(item_data) <- vector_names
+			}else{
+				names(item_data) <- worker_item[[3]]
+			}
 			
 			# Create a new environment that inherits from the calling environment.
 			eval_env <- new.env(parent = calling_env)
@@ -142,6 +155,7 @@ fly <- function(X, expr, ..., .var = ".x", .margin = 1, .parallel = NULL,
 			expr_sub = expr_sub,
 			calling_env = calling_env,
 			arguments = arguments,
+			vector_names = vector_names,
 			.var = .var,
 			.index_var = .index_var
 		), parent = calling_env)
